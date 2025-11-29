@@ -1,0 +1,12 @@
+module.exports.authValidation = require('./auth.validation');
+module.exports.userValidation = require('./user.validation');
+module.exports.masterDataValidation = require('./masterData.validation');
+module.exports.planFeaturesValidation = require('./plan-feature.validation');
+module.exports.permissionValidation = require('./permission.validation');
+module.exports.thirdpartyValidation = require('./thirdparty.validation');
+module.exports.ticketValidation = require('./ticket.validation');
+module.exports.ticketResponseValidation = require('./ticketResponse.validation');
+module.exports.roleValidation = require('./role.validation');
+module.exports.helpDeskMappingValidation = require('./help-desk-mapping.validation');
+module.exports.rolePermissionValidation = require('./role-permission.validation');
+module.exports.userRoleValidation = require('./user-role.validation');

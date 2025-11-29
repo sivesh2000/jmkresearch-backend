@@ -1,0 +1,41 @@
+name: Backend Code Sync
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  sync:
+    runs-on: self-hosted
+
+    steps:
+      - name: Backup logo file
+        run: |
+          if [ -f "uploads/logo.png" ]; then
+            cp uploads/logo.png /tmp/logo-backup.png
+          fi
+
+      - name: Checkout backend code
+        uses: actions/checkout@v4
+
+      - name: Restore logo file
+        run: |
+          mkdir -p uploads
+          if [ -f "/tmp/logo-backup.png" ]; then
+            cp /tmp/logo-backup.png uploads/logo.png
+            rm -f /tmp/logo-backup.png
+          fi
+
+      - name: Setup environment variables
+        run: |
+          touch .env
+          echo "${{ secrets.PROD }}" > .env
+          mkdir -p logs
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Restart PM2 application
+        run: |
+          pm2 restart jmkresearch-backend-app || pm2 start ecosystem.config.json
+          pm2 save
