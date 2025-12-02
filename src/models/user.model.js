@@ -85,22 +85,6 @@ userSchema.plugin(toJSON);
 userSchema.plugin(paginate);
 
 /**
- * Check if user has specific permission
- * @param {string} permissionCode
- * @returns {Promise<boolean>}
- */
-userSchema.methods.hasPermission = async function (permissionCode) {
-  const user = this;
-
-  // Super admin has all permissions
-  if (user.userType === 'super_admin') {
-    return true;
-  }
-
-  return false;
-};
-
-/**
  * Check if email is taken
  * @param {string} email - The user's email
  * @param {ObjectId} [excludeUserId] - The id of the user to be excluded

@@ -18,3 +18,6 @@ module.exports.Domain = require('./domain.model');
 module.exports.HelpDeskMapping = require('./help-desk-mapping.model');
 module.exports.RolePermission = require('./role-permission.model');
 module.exports.UserRole = require('./user-role.model');
+module.exports.Menu = require('./menu.model');
+module.exports.PageContent = require('./page-content.model');
+module.exports.Config = require('./config.model');

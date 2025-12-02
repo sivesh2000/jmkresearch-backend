@@ -9,3 +9,6 @@ module.exports.thirdPartyService = require('./thirdparty.service');
 module.exports.ticketService = require('./ticket.service');
 module.exports.ticketResponseService = require('./ticketResponse.service');
 module.exports.roleService = require('./role.service');
+module.exports.menuService = require('./menu.service');
+module.exports.pageContentService = require('./page-content.service');
+module.exports.configService = require('./config.service');

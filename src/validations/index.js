@@ -10,3 +10,6 @@ module.exports.roleValidation = require('./role.validation');
 module.exports.helpDeskMappingValidation = require('./help-desk-mapping.validation');
 module.exports.rolePermissionValidation = require('./role-permission.validation');
 module.exports.userRoleValidation = require('./user-role.validation');
+module.exports.menuValidation = require('./menu.validation');
+module.exports.pageContentValidation = require('./page-content.validation');
+module.exports.configValidation = require('./config.validation');

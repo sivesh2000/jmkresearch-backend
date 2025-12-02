@@ -20,6 +20,9 @@ const roleRoute = require('./role.route');
 const helpDeskMappingRoute = require('./help-desk-mapping.route');
 const rolePermissionRoute = require('./role-permission.route');
 const userRole = require('./user-role.route');
+const menuRoute = require('./menu.route');
+const pageContentRoute = require('./page-content.route');
+const configRoute = require('./config.route');
 
 const router = express.Router();
 
@@ -43,6 +46,9 @@ const defaultRoutes = [
   { path: '/help-desk-mapping', route: helpDeskMappingRoute },
   { path: '/role-permission', route: rolePermissionRoute },
   { path: '/user-role', route: userRole },
+  { path: '/menus', route: menuRoute },
+  { path: '/page-contents', route: pageContentRoute },
+  { path: '/configs', route: configRoute },
 ];
 
 const devRoutes = [
