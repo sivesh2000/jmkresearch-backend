@@ -16,3 +16,6 @@ module.exports.roleController = require('./role.controller');
 module.exports.helpDeskMappingController = require('./help-desk-mapping.controller');
 module.exports.rolePermissionController = require('./role-permission.controller');
 module.exports.userRoleController = require('./user-role.controller');
+module.exports.menuController = require('./menu.controller');
+module.exports.pageContentController = require('./page-content.controller');
+module.exports.configController = require('./config.controller');

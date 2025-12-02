@@ -4,12 +4,12 @@ const { password, objectId } = require('./custom.validation');
 const createUser = {
   body: Joi.object().keys({
     name: Joi.string().required().trim(),
-    code: Joi.string().trim().allow(''),    
+    code: Joi.string().trim().allow(''),
     email: Joi.string().required().email(),
     password: Joi.string().required().custom(password),
     role: Joi.string().required().valid('user', 'admin'),
-    userType: Joi.string().required().valid('super_admin', 'user', 'guest'),    
-    stateRef: Joi.string().custom(objectId).allow(''),   
+    userType: Joi.string().required().valid('super_admin', 'user', 'guest'),
+    stateRef: Joi.string().custom(objectId).allow(''),
     status: Joi.boolean(),
     isEmailVerified: Joi.boolean(),
   }),
@@ -18,10 +18,10 @@ const createUser = {
 const getUsers = {
   query: Joi.object().keys({
     name: Joi.string(),
-    code: Joi.string(),    
+    code: Joi.string(),
     email: Joi.string().email(),
     role: Joi.string(),
-    userType: Joi.string().valid('super_admin', 'user', 'guest'),   
+    userType: Joi.string().valid('super_admin', 'user', 'guest'),
     status: Joi.boolean(),
     sortBy: Joi.string(),
     limit: Joi.number().integer(),
@@ -54,12 +54,12 @@ const updateUser = {
   body: Joi.object()
     .keys({
       name: Joi.string().trim(),
-      code: Joi.string().trim().allow(''),     
+      code: Joi.string().trim().allow(''),
       email: Joi.string().email(),
       password: Joi.string().custom(password),
       role: Joi.string().valid('user', 'admin'),
-      userType: Joi.string().valid('super_admin', 'user', 'guest'),      
-      stateRef: Joi.string().custom(objectId).allow(''),      
+      userType: Joi.string().valid('super_admin', 'user', 'guest'),
+      stateRef: Joi.string().custom(objectId).allow(''),
       status: Joi.boolean(),
       isEmailVerified: Joi.boolean(),
     })

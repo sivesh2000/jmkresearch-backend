@@ -60,7 +60,7 @@ const updateProfile = {
   body: Joi.object()
     .keys({
       name: Joi.string().trim(),
-      code: Joi.string().trim().allow(''),      
+      code: Joi.string().trim().allow(''),
     })
     .min(1),
 };

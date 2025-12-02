@@ -41,9 +41,9 @@ module.exports = {
       useCreateIndex: true,
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      //ssl: true,
-      //sslValidate: false,
-      //sslCA: fs.readFileSync('rds-combined-ca-bundle.pem'),
+      // ssl: true,
+      // sslValidate: false,
+      // sslCA: fs.readFileSync('rds-combined-ca-bundle.pem'),
     },
   },
   jwt: {
