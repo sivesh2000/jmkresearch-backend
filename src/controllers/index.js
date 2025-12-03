@@ -19,3 +19,5 @@ module.exports.userRoleController = require('./user-role.controller');
 module.exports.menuController = require('./menu.controller');
 module.exports.pageContentController = require('./page-content.controller');
 module.exports.configController = require('./config.controller');
+module.exports.tenderController = require('./tender.controller');
+module.exports.companyController = require('./company.controller');

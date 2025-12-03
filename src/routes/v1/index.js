@@ -23,6 +23,8 @@ const userRole = require('./user-role.route');
 const menuRoute = require('./menu.route');
 const pageContentRoute = require('./page-content.route');
 const configRoute = require('./config.route');
+const companyRoute = require('./company.route');
+const tenderRoute = require('./tender.route');
 
 const router = express.Router();
 
@@ -49,6 +51,8 @@ const defaultRoutes = [
   { path: '/menus', route: menuRoute },
   { path: '/page-contents', route: pageContentRoute },
   { path: '/configs', route: configRoute },
+  { path: '/companies', route: companyRoute },
+  { path: '/tenders', route: tenderRoute },
 ];
 
 const devRoutes = [

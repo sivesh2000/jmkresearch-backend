@@ -12,3 +12,5 @@ module.exports.roleService = require('./role.service');
 module.exports.menuService = require('./menu.service');
 module.exports.pageContentService = require('./page-content.service');
 module.exports.configService = require('./config.service');
+module.exports.tenderService = require('./tender.service');
+module.exports.companyService = require('./company.service');

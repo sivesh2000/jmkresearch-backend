@@ -21,3 +21,5 @@ module.exports.UserRole = require('./user-role.model');
 module.exports.Menu = require('./menu.model');
 module.exports.PageContent = require('./page-content.model');
 module.exports.Config = require('./config.model');
+module.exports.Tender = require('./tender.model');
+module.exports.Company = require('./company.model');

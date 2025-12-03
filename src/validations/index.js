@@ -13,3 +13,5 @@ module.exports.userRoleValidation = require('./user-role.validation');
 module.exports.menuValidation = require('./menu.validation');
 module.exports.pageContentValidation = require('./page-content.validation');
 module.exports.configValidation = require('./config.validation');
+module.exports.tenderValidation = require('./tender.validation');
+module.exports.companyValidation = require('./company.validation');
