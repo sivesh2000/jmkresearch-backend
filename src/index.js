@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const app = require('./app');
 const config = require('./config/config');
 const logger = require('./config/logger');
+const { seedConfigs } = require('./config/seedConfigs');
 
 let server;
 
@@ -14,6 +15,7 @@ const connectDB = async () => {
       heartbeatFrequencyMS: 2000,
     });
     logger.info('Connected to MongoDB');
+    await seedConfigs();
   } catch (err) {
     logger.error('MongoDB connection error:', err);
     setTimeout(connectDB, 5000);
