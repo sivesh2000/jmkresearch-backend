@@ -1,6 +1,7 @@
 const express = require('express');
 const auth = require('../../middlewares/auth');
 const validate = require('../../middlewares/validate');
+const upload = require('../../middlewares/upload');
 const companyValidation = require('../../validations/company.validation');
 const companyController = require('../../controllers/company.controller');
 
@@ -12,6 +13,10 @@ router
   .get(validate(companyValidation.getCompanies), companyController.getCompanies);
 
 router.route('/player-type/:playerType').get(companyController.getCompaniesByPlayerType);
+
+router.route('/export').get(auth('manageUsers'), companyController.exportCompanies);
+
+router.route('/import').post(auth('manageUsers'), upload.single('file'), companyController.importCompanies);
 
 router.route('/slug/:slug').get(validate(companyValidation.getCompanyBySlug), companyController.getCompanyBySlug);
 
@@ -121,4 +126,68 @@ module.exports = router;
  *     responses:
  *       "204":
  *         description: No Content
+ */
+
+/**
+ * @swagger
+ * /companies/export:
+ *   get:
+ *     summary: Export companies to Excel
+ *     tags: [Companies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: playerType
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *     responses:
+ *       "200":
+ *         description: Excel file download
+ *         content:
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+ *             schema:
+ *               type: string
+ *               format: binary
+ */
+
+/**
+ * @swagger
+ * /companies/import:
+ *   post:
+ *     summary: Import companies from Excel
+ *     tags: [Companies]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: Excel file with company data
+ *     responses:
+ *       "200":
+ *         description: Import results
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 created:
+ *                   type: number
+ *                 skipped:
+ *                   type: number
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: string
  */

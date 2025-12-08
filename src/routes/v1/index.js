@@ -25,6 +25,7 @@ const pageContentRoute = require('./page-content.route');
 const configRoute = require('./config.route');
 const companyRoute = require('./company.route');
 const tenderRoute = require('./tender.route');
+const categoryRoute = require('./category.route');
 
 const router = express.Router();
 
@@ -53,6 +54,7 @@ const defaultRoutes = [
   { path: '/configs', route: configRoute },
   { path: '/companies', route: companyRoute },
   { path: '/tenders', route: tenderRoute },
+  { path: '/categories', route: categoryRoute },
 ];
 
 const devRoutes = [
