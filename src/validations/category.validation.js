@@ -19,6 +19,7 @@ const createCategory = {
 
 const getCategories = {
   query: Joi.object().keys({
+    search: Joi.string().trim(),
     name: Joi.string().trim(),
     parentId: Joi.string().custom(objectId).allow(null, ''),
     isActive: Joi.boolean(),

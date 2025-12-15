@@ -16,11 +16,14 @@ const getCategories = catchAsync(async (req, res) => {
 
   // Add search functionality to regular get
   if (req.query.search) {
-    filter.$or = [
-      { name: { $regex: req.query.search, $options: 'i' } },
-      { slug: { $regex: req.query.search, $options: 'i' } },
-      { description: { $regex: req.query.search, $options: 'i' } },
-    ];
+    const searchTerm = String(req.query.search).trim();
+    if (searchTerm) {
+      filter.$or = [
+        { name: { $regex: searchTerm, $options: 'i' } },
+        { slug: { $regex: searchTerm, $options: 'i' } },
+        { description: { $regex: searchTerm, $options: 'i' } },
+      ];
+    }
   }
 
   const result = await categoryService.queryCategories(filter, options);

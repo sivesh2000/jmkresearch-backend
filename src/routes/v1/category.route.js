@@ -75,6 +75,11 @@ module.exports = router;
  *         name: name
  *         schema:
  *           type: string
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Search term (partial matches supported)
  *       - in: query
  *         name: parentId
  *         schema:
