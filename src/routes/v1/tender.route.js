@@ -3,8 +3,13 @@ const auth = require('../../middlewares/auth');
 const validate = require('../../middlewares/validate');
 const tenderValidation = require('../../validations/tender.validation');
 const tenderController = require('../../controllers/tender.controller');
+const upload = require('../../middlewares/upload');
 
 const router = express.Router();
+
+router.route('/export').get(auth('manageUsers'), tenderController.exportTenders);
+
+router.route('/import').post(auth('manageUsers'), upload.single('file'), tenderController.importTenders);
 
 router
   .route('/')
@@ -132,4 +137,48 @@ module.exports = router;
  *     responses:
  *       "204":
  *         description: No Content
+ */
+/**
+ * @swagger
+ * /tenders/export:
+ *   get:
+ *     summary: Export tenders to Excel
+ *     tags: [Tenders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: technology
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: tenderStatus
+ *         schema:
+ *           type: string
+ *     responses:
+ *       "200":
+ *         description: Excel file download
+ */
+
+/**
+ * @swagger
+ * /tenders/import:
+ *   post:
+ *     summary: Import tenders from Excel
+ *     tags: [Tenders]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       "200":
+ *         description: Import results
  */

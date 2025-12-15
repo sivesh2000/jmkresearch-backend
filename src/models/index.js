@@ -1,8 +1,11 @@
 module.exports.Token = require('./token.model');
 module.exports.User = require('./user.model');
 module.exports.Master = require('./master.model');
-module.exports.State = require('./geographic.model');
-module.exports.City = require('./geographic.model');
+const { State, City, District } = require('./geographic.model');
+
+module.exports.State = State;
+module.exports.City = City;
+module.exports.District = District;
 module.exports.Make = require('./vehicle.model');
 module.exports.Model = require('./vehicle.model');
 module.exports.Plan = require('./plan.model');
@@ -24,3 +27,6 @@ module.exports.Config = require('./config.model');
 module.exports.Tender = require('./tender.model');
 module.exports.Category = require('./category.model');
 module.exports.Company = require('./company.model');
+module.exports.ChartDataset = require('./chart-dataset.model');
+module.exports.ChartMaster = require('./chart-master.model');
+module.exports.PageChartPlacement = require('./page-chart-placement.model');
