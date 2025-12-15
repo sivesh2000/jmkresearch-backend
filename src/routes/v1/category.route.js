@@ -12,6 +12,7 @@ router
   .get(validate(categoryValidation.getCategories), categoryController.getCategories);
 
 router.route('/tree').get(categoryController.getCategoryTree);
+router.route('/search').get(categoryController.searchCategories);
 
 router
   .route('/reorder')
@@ -92,6 +93,48 @@ module.exports = router;
  *     responses:
  *       "200":
  *         description: OK
+ */
+
+/**
+ * @swagger
+ * /categories/search:
+ *   get:
+ *     summary: Search categories by name, slug, or description
+ *     tags: [Categories]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Search term
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *         description: Maximum results
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   slug:
+ *                     type: string
+ *                   displayName:
+ *                     type: string
+ *                     description: Category name with parent (e.g., "Technology > Software")
+ *                   parentId:
+ *                     type: object
  */
 
 /**

@@ -18,6 +18,30 @@ const queryCategories = async (filter, options) => {
   return Category.paginate(filter, options);
 };
 
+const searchCategories = async (searchTerm, options = {}) => {
+  const searchFilter = {
+    $or: [
+      { name: { $regex: searchTerm, $options: 'i' } },
+      { slug: { $regex: searchTerm, $options: 'i' } },
+      { description: { $regex: searchTerm, $options: 'i' } },
+    ],
+    isActive: true,
+  };
+
+  const categories = await Category.find(searchFilter)
+    .populate('parentId', 'name slug')
+    .sort({ order: 1, name: 1 })
+    .limit(options.limit || 50);
+
+  // Add parent name to display
+  const results = categories.map((cat) => ({
+    ...cat.toObject(),
+    displayName: cat.parentId ? `${cat.parentId.name} > ${cat.name}` : cat.name,
+  }));
+
+  return results;
+};
+
 const getCategoryById = async (id) => {
   return Category.findById(id).populate('parentId', 'name slug');
 };
@@ -92,4 +116,5 @@ module.exports = {
   deleteCategoryById,
   getCategoryTree,
   reorderCategories,
+  searchCategories,
 };

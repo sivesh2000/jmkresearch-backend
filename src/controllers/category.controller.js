@@ -14,6 +14,15 @@ const getCategories = catchAsync(async (req, res) => {
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
   if (!options.sortBy) options.sortBy = 'order:asc,name:asc';
 
+  // Add search functionality to regular get
+  if (req.query.search) {
+    filter.$or = [
+      { name: { $regex: req.query.search, $options: 'i' } },
+      { slug: { $regex: req.query.search, $options: 'i' } },
+      { description: { $regex: req.query.search, $options: 'i' } },
+    ];
+  }
+
   const result = await categoryService.queryCategories(filter, options);
   res.send(result);
 });
@@ -54,6 +63,13 @@ const reorderCategories = catchAsync(async (req, res) => {
   res.send(result);
 });
 
+const searchCategories = catchAsync(async (req, res) => {
+  const { q } = req.query;
+  const options = pick(req.query, ['limit']);
+  const result = await categoryService.searchCategories(q, options);
+  res.send(result);
+});
+
 module.exports = {
   createCategory,
   getCategories,
@@ -63,4 +79,5 @@ module.exports = {
   deleteCategory,
   getCategoryTree,
   reorderCategories,
+  searchCategories,
 };
