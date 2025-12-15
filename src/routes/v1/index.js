@@ -26,6 +26,8 @@ const configRoute = require('./config.route');
 const companyRoute = require('./company.route');
 const tenderRoute = require('./tender.route');
 const categoryRoute = require('./category.route');
+const chartRoute = require('./chart.route');
+const chartHelperRoute = require('./chart-helper.route');
 
 const router = express.Router();
 
@@ -55,6 +57,8 @@ const defaultRoutes = [
   { path: '/companies', route: companyRoute },
   { path: '/tenders', route: tenderRoute },
   { path: '/categories', route: categoryRoute },
+  { path: '/charts', route: chartRoute },
+  { path: '/chart-helpers', route: chartHelperRoute },
 ];
 
 const devRoutes = [

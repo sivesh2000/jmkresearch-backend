@@ -47,6 +47,98 @@ components:
         message:
           type: string
 
+    ChartDataset:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        data:
+          type: array
+        columns:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              type:
+                type: string
+                enum: [string, number, date]
+              label:
+                type: string
+        status:
+          type: string
+          enum: [Active, Inactive]
+      example:
+        id: 5ebac534954b54139806c112
+        name: Solar Prices Dataset
+        description: Monthly solar price data
+        status: Active
+
+    ChartMaster:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        titleFrontend:
+          type: string
+        chartType:
+          type: string
+          enum: [line, bar, stackedBar, area, pie, donut, scatter, table]
+        datasetId:
+          type: string
+        mapping:
+          type: object
+          properties:
+            xKey:
+              type: string
+            yKeys:
+              type: array
+              items:
+                type: string
+        status:
+          type: string
+          enum: [Active, Inactive, Draft]
+      example:
+        id: 5ebac534954b54139806c112
+        name: SolarPriceChart
+        titleFrontend: Solar Price Trends
+        chartType: line
+        status: Active
+
+    PageChartPlacement:
+      type: object
+      properties:
+        id:
+          type: string
+        pageId:
+          type: string
+        chartId:
+          type: string
+        section:
+          type: string
+        position:
+          type: number
+        width:
+          type: string
+          enum: [full, half, third, auto]
+        isVisible:
+          type: boolean
+      example:
+        id: 5ebac534954b54139806c112
+        pageId: 5ebac534954b54139806c113
+        chartId: 5ebac534954b54139806c114
+        section: main
+        position: 1
+        width: full
+        isVisible: true
+
   responses:
     DuplicateEmail:
       description: Email already taken

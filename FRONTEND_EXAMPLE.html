@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Easy Chart Upload</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .preview { background: #f8f9fa; padding: 15px; border-radius: 4px; margin-top: 15px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h1>Easy Chart Creator</h1>
+    
+    <form id="chartForm">
+        <div class="form-group">
+            <label>Dataset Name:</label>
+            <input type="text" id="datasetName" required placeholder="e.g., Solar Prices 2024">
+        </div>
+        
+        <div class="form-group">
+            <label>Chart Name:</label>
+            <input type="text" id="chartName" required placeholder="e.g., Solar Price Trends">
+        </div>
+        
+        <div class="form-group">
+            <label>Chart Type:</label>
+            <select id="chartType" required>
+                <option value="">Select Chart Type</option>
+                <option value="line">Line Chart (trends over time)</option>
+                <option value="bar">Bar Chart (compare categories)</option>
+                <option value="pie">Pie Chart (show proportions)</option>
+                <option value="area">Area Chart (volume over time)</option>
+                <option value="table">Data Table (raw data)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>CSV Data:</label>
+            <textarea id="csvData" rows="10" required placeholder="Month,Price,State
+Jan,100,CA
+Feb,95,CA
+Mar,90,CA"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Link to Page (Optional):</label>
+            <select id="pageId">
+                <option value="">Don't link to any page</option>
+            </select>
+        </div>
+        
+        <button type="submit">Create Chart</button>
+    </form>
+    
+    <div id="result" class="hidden">
+        <h3>Chart Created Successfully!</h3>
+        <div id="resultDetails"></div>
+    </div>
+
+    <script>
+        // Load available pages
+        async function loadPages() {
+            try {
+                const response = await fetch('/v1/chart-helpers/pages', {
+                    headers: { 'Authorization': 'Bearer YOUR_TOKEN' }
+                });
+                const pages = await response.json();
+                const select = document.getElementById('pageId');
+                
+                pages.forEach(page => {
+                    const option = document.createElement('option');
+                    option.value = page._id;
+                    option.textContent = page.title;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading pages:', error);
+            }
+        }
+        
+        // Handle form submission
+        document.getElementById('chartForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                datasetName: document.getElementById('datasetName').value,
+                chartName: document.getElementById('chartName').value,
+                chartType: document.getElementById('chartType').value,
+                csvData: document.getElementById('csvData').value,
+                pageId: document.getElementById('pageId').value || undefined
+            };
+            
+            try {
+                const response = await fetch('/v1/charts/quick-setup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer YOUR_TOKEN'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    document.getElementById('result').classList.remove('hidden');
+                    document.getElementById('resultDetails').innerHTML = `
+                        <p><strong>Dataset ID:</strong> ${result.dataset._id}</p>
+                        <p><strong>Chart ID:</strong> ${result.chart._id}</p>
+                        ${result.placement ? `<p><strong>Linked to Page:</strong> Yes</p>` : ''}
+                    `;
+                } else {
+                    alert('Error creating chart. Please check your data.');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+        
+        // Load pages on page load
+        loadPages();
+    </script>
+</body>
+</html>
