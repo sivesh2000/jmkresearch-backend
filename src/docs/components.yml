@@ -139,6 +139,45 @@ components:
         width: full
         isVisible: true
 
+    Asset:
+      type: object
+      properties:
+        id:
+          type: string
+        originalName:
+          type: string
+        fileName:
+          type: string
+        mimeType:
+          type: string
+        size:
+          type: number
+        s3Url:
+          type: string
+        category:
+          type: string
+          enum: [document, image, logo, banner, icon, other]
+        tags:
+          type: array
+          items:
+            type: string
+        alt:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [Active, Inactive]
+      example:
+        id: 5ebac534954b54139806c112
+        originalName: company-logo.png
+        fileName: company-logo.png
+        mimeType: image/png
+        size: 15420
+        s3Url: https://bucket.s3.amazonaws.com/logos/company-logo.png
+        category: logo
+        status: Active
+
   responses:
     DuplicateEmail:
       description: Email already taken
