@@ -30,3 +30,4 @@ module.exports.Company = require('./company.model');
 module.exports.ChartDataset = require('./chart-dataset.model');
 module.exports.ChartMaster = require('./chart-master.model');
 module.exports.PageChartPlacement = require('./page-chart-placement.model');
+module.exports.Asset = require('./asset.model');
