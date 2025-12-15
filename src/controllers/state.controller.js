@@ -9,7 +9,14 @@ const getAllStates = catchAsync(async (req, res) => {
 });
 
 const getStates = catchAsync(async (req, res) => {
-  const states = await State.find({ isActive: true }).sort({ name: 1 }).lean();
+  const { search } = req.query;
+  const filter = { isActive: true };
+
+  if (typeof search === 'string' && search.trim() !== '') {
+    filter.name = { $regex: search.trim(), $options: 'i' };
+  }
+
+  const states = await State.find(filter).select('name code').sort({ name: 1 }).lean();
   res.json(states);
 });
 
