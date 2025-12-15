@@ -14,16 +14,60 @@ const createCategory = async (categoryBody) => {
   return Category.create(categoryBody);
 };
 
-const queryCategories = async (filter, options) => {
-  return Category.paginate(filter, options);
+const queryCategories = async (filter = {}, options = {}) => {
+  // Work on a copy to avoid mutating the caller's object
+  const query = { ...filter };
+
+  // If caller provided a `search` param, convert to partial-match filter
+  if (typeof query.search === 'string' && query.search.trim() !== '') {
+    const term = query.search.trim();
+    delete query.search;
+    query.$or = [
+      { name: { $regex: term, $options: 'i' } },
+      { slug: { $regex: term, $options: 'i' } },
+      { description: { $regex: term, $options: 'i' } },
+    ];
+    // keep only active categories for searches by default
+    if (query.isActive === undefined) query.isActive = true;
+  }
+
+  // Ensure numeric pagination options and safe spread
+  const opts = { ...options };
+  const page = Number.parseInt(opts.page, 10);
+  const limit = Number.parseInt(opts.limit, 10);
+  const paginateOptions = {
+    ...opts,
+    populate: 'parentId',
+    ...(Number.isInteger(page) && { page }),
+    ...(Number.isInteger(limit) && { limit }),
+  };
+
+  const result = await Category.paginate(query, paginateOptions);
+
+  // Add displayName and normalize parentId to only include name & slug
+  result.results = result.results.map((cat) => {
+    const obj = typeof cat.toObject === 'function' ? cat.toObject() : cat;
+    const parent = obj.parentId ? { name: obj.parentId.name, slug: obj.parentId.slug } : null;
+    return {
+      ...obj,
+      parentId: parent,
+      displayName: parent ? `${parent.name} > ${obj.name}` : obj.name,
+    };
+  });
+
+  return result;
 };
 
 const searchCategories = async (searchTerm, options = {}) => {
+  const term = (searchTerm || '').trim();
+  const limit = Number.parseInt(options.limit, 10);
+  const finalLimit = Number.isInteger(limit) ? limit : 50;
+
   const searchFilter = {
     $or: [
-      { name: { $regex: searchTerm, $options: 'i' } },
-      { slug: { $regex: searchTerm, $options: 'i' } },
-      { description: { $regex: searchTerm, $options: 'i' } },
+      { name: { $regex: term, $options: 'i' } },
+      { slug: { $regex: term, $options: 'i' } },
+      { description: { $regex: term, $options: 'i' } },
     ],
     isActive: true,
   };
@@ -31,7 +75,7 @@ const searchCategories = async (searchTerm, options = {}) => {
   const categories = await Category.find(searchFilter)
     .populate('parentId', 'name slug')
     .sort({ order: 1, name: 1 })
-    .limit(options.limit || 50);
+    .limit(finalLimit);
 
   // Add parent name to display
   const results = categories.map((cat) => ({
