@@ -13,11 +13,13 @@ This guide explains how to use the company import and export functionality with 
 ## API Endpoints
 
 ### Export Companies
+
 ```
 GET /v1/companies/export
 ```
 
 **Query Parameters:**
+
 - `playerType` (optional): Filter by player type
 - `isActive` (optional): Filter by active status (true/false)
 - `isVerified` (optional): Filter by verified status (true/false)
@@ -26,33 +28,35 @@ GET /v1/companies/export
 **Response:** CSV file download
 
 ### Import Companies
+
 ```
 POST /v1/companies/import
 ```
 
 **Request:**
+
 - Content-Type: `multipart/form-data`
 - File field: `file` (must be .csv extension)
 
 **Response:**
+
 ```json
 {
   "success": 5,
   "failed": 2,
-  "errors": [
-    "Row 3: Missing required fields (name or playerType)",
-    "Row 7: Company 'Existing Company' already exists"
-  ]
+  "errors": ["Row 3: Missing required fields (name or playerType)", "Row 7: Company 'Existing Company' already exists"]
 }
 ```
 
 ## CSV Format
 
 ### Required Fields
+
 - `name`: Company name (unique)
 - `playerType`: Single type or comma-separated multiple types
 
 ### Supported Player Types
+
 - Project Developer
 - Module Supplier
 - EPC Contractor
@@ -61,11 +65,13 @@ POST /v1/companies/import
 - Consultant
 
 ### Complete CSV Structure
+
 ```csv
 name,playerType,description,website,logoUrl,contactEmail,contactPhone,contactAddress,contactCity,contactState,contactCountry,contactPincode,linkedinUrl,twitterUrl,facebookUrl,establishedYear,employeeCount,revenue,certifications,tags,isActive,isVerified
 ```
 
 ### Example Rows
+
 ```csv
 "Adani Green Energy","Project Developer,Module Supplier","Leading renewable energy company","https://adanigreenenergy.com","","contact@adanigreenenergy.com","+91-9876543210","Adani Corporate House","Ahmedabad","Gujarat","India","382421","https://linkedin.com/company/adanigreenenergy","","",2015,"1000+","1000+ Crores","ISO 9001,ISO 14001","renewable,solar,wind",true,true
 "Tata Power Solar","Module Supplier","Solar module manufacturing","https://tatapowersolar.com","","info@tatapowersolar.com","+91-8765432109","Tata Power House","Mumbai","Maharashtra","India","400025","","","",2010,"500-1000","500-1000 Crores","ISO 9001,IEC 61215","solar,modules",true,false
@@ -74,6 +80,7 @@ name,playerType,description,website,logoUrl,contactEmail,contactPhone,contactAdd
 ## Field Details
 
 ### Basic Information
+
 - **name**: Company name (required, must be unique)
 - **playerType**: Single or multiple types separated by commas
 - **description**: Company description
@@ -81,6 +88,7 @@ name,playerType,description,website,logoUrl,contactEmail,contactPhone,contactAdd
 - **logoUrl**: Logo image URL
 
 ### Contact Information
+
 - **contactEmail**: Primary email address
 - **contactPhone**: Phone number
 - **contactAddress**: Street address
@@ -90,11 +98,13 @@ name,playerType,description,website,logoUrl,contactEmail,contactPhone,contactAdd
 - **contactPincode**: Postal/ZIP code
 
 ### Social Media
+
 - **linkedinUrl**: LinkedIn company page
 - **twitterUrl**: Twitter profile
 - **facebookUrl**: Facebook page
 
 ### Business Details
+
 - **establishedYear**: Year company was founded (number)
 - **employeeCount**: Employee range (e.g., "100-500", "1000+")
 - **revenue**: Revenue range (e.g., "10-50 Crores", "1000+ Crores")
@@ -102,6 +112,7 @@ name,playerType,description,website,logoUrl,contactEmail,contactPhone,contactAdd
 - **tags**: Comma-separated tags for categorization
 
 ### Status
+
 - **isActive**: Active status (true/false)
 - **isVerified**: Verified status (true/false)
 
@@ -118,6 +129,7 @@ This will create a company with three player types.
 ## Import Validation
 
 The import process validates:
+
 1. **Required fields**: name and playerType must be present
 2. **Unique names**: Company names must be unique
 3. **Data formats**: Email format, year ranges, boolean values
@@ -126,6 +138,7 @@ The import process validates:
 ## Error Handling
 
 Import errors are reported with:
+
 - Row number (starting from 2, as row 1 is headers)
 - Specific error message
 - Failed row count vs successful imports
@@ -133,6 +146,7 @@ Import errors are reported with:
 ## Sample Files
 
 Use the provided `sample-companies.csv` file as a template for your imports. It includes examples of:
+
 - Single and multiple player types
 - Various company sizes and industries
 - Complete contact and business information

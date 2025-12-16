@@ -3,7 +3,7 @@ const ApiError = require('../utils/ApiError');
 
 const storage = multer.memoryStorage();
 
-const fileFilter = (req, file, cb) => {
+const fileFilter = (_req, file, cb) => {
   if (
     file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
     file.mimetype === 'application/vnd.ms-excel'

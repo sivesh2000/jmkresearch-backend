@@ -1,7 +1,7 @@
 const express = require('express');
 const auth = require('../../middlewares/auth');
 const validate = require('../../middlewares/validate');
-const upload = require('../../middlewares/upload');
+const csvUpload = require('../../middlewares/csvUpload');
 const companyValidation = require('../../validations/company.validation');
 const companyController = require('../../controllers/company.controller');
 
@@ -22,7 +22,7 @@ router
   .route('/import')
   .post(
     auth('manageUsers'),
-    upload.single('file'),
+    csvUpload.single('file'),
     validate(companyValidation.importCompanies),
     companyController.importCompanies
   );
