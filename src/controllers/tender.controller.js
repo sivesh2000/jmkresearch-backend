@@ -5,7 +5,8 @@ const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { tenderService } = require('../services');
-const { Tender } = require('../models');
+const { Tender, Company } = require('../models');
+const { State } = require('../models/geographic.model');
 
 const createTender = catchAsync(async (req, res) => {
   const tender = await tenderService.createTender(req.body);
@@ -135,51 +136,132 @@ const importTenders = catchAsync(async (req, res) => {
   await workbook.xlsx.load(req.file.buffer);
   const worksheet = workbook.getWorksheet(1);
 
-  const tenders = [];
+  const rows = [];
   const errors = [];
 
-  worksheet.eachRow((row, rowNumber) => {
-    if (rowNumber === 1) return; // Skip header
-
-    try {
-      const tenderData = {
-        tenderName: row.getCell(1).value,
-        tenderNumber: row.getCell(2).value,
-        technology: row.getCell(3).value,
-        tenderCapacityMW: row.getCell(6).value || 0,
-        tenderStatus: row.getCell(7).value || 'Open',
-        rfsIssueDate: row.getCell(8).value,
-        bidSubmissionDeadline: row.getCell(9).value,
-        location: row.getCell(10).value,
-      };
-
-      if (tenderData.tenderName && tenderData.technology) {
-        tenders.push(tenderData);
-      }
-    } catch (error) {
-      errors.push(`Row ${rowNumber}: ${error.message}`);
+  const parseDate = (val) => {
+    if (!val) return undefined;
+    if (val instanceof Date) return val;
+    if (typeof val === 'string') {
+      const mIso = moment(val, moment.ISO_8601, true);
+      if (mIso.isValid()) return mIso.toDate();
+      const mDmy = moment(val, 'DD/MM/YYYY', true);
+      if (mDmy.isValid()) return mDmy.toDate();
+      return undefined;
     }
+    if (typeof val === 'number') {
+      // Excel serial date number -> JS Date
+      return new Date(Math.round((val - 25569) * 86400 * 1000));
+    }
+    if (typeof val === 'object' && val.text) {
+      const m = moment(val.text, ['YYYY-MM-DD', 'DD/MM/YYYY', 'MM/DD/YYYY'], true);
+      if (m.isValid()) return m.toDate();
+    }
+    return undefined;
+  };
+
+  // iterate rows
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return; // header
+    const tenderName = row.getCell(1).value && String(row.getCell(1).value).trim();
+    const tenderNumber = row.getCell(2).value && String(row.getCell(2).value).trim();
+    const technology = row.getCell(3).value && String(row.getCell(3).value).trim();
+    const companyName = row.getCell(4).value && String(row.getCell(4).value).trim();
+    const stateName = row.getCell(5).value && String(row.getCell(5).value).trim();
+    const tenderCapacityMW = row.getCell(6).value || 0;
+    const tenderStatus = row.getCell(7).value || 'Open';
+    const rfsIssueDate = parseDate(row.getCell(8).value);
+    const bidSubmissionDeadline = parseDate(row.getCell(9).value);
+    const location = row.getCell(10).value && String(row.getCell(10).value).trim();
+
+    if (!tenderName || !technology) {
+      errors.push(`Row ${rowNumber}: missing required field(s) (tenderName, technology)`);
+      return;
+    }
+
+    rows.push({
+      rowNumber,
+      tenderName,
+      tenderNumber,
+      technology,
+      companyName,
+      stateName,
+      tenderCapacityMW,
+      tenderStatus,
+      rfsIssueDate,
+      bidSubmissionDeadline,
+      location,
+    });
   });
 
-  const results = { created: 0, errors: [] };
-
+  // Fetch existing tenders for dedupe
   const existingTenders = await Tender.find({}, 'tenderNumber tenderName').lean();
   const existingNumbers = new Set(existingTenders.map((t) => t.tenderNumber).filter(Boolean));
   const existingNames = new Set(existingTenders.map((t) => t.tenderName));
 
-  const newTenders = tenders.filter(
-    (tender) => !existingNumbers.has(tender.tenderNumber) && !existingNames.has(tender.tenderName)
-  );
+  // Prefetch companies and states referenced in the file to avoid await in loop
+  const companyNames = Array.from(new Set(rows.map((r) => r.companyName).filter(Boolean)));
+  const stateNames = Array.from(new Set(rows.map((r) => r.stateName).filter(Boolean)));
 
-  if (newTenders.length > 0) {
-    await Tender.insertMany(newTenders);
-    results.created = newTenders.length;
+  const companies = companyNames.length ? await Company.find({ name: { $in: companyNames } }).lean() : [];
+  const states = stateNames.length ? await State.find({ name: { $in: stateNames } }).lean() : [];
+
+  const companyMap = new Map(companies.map((c) => [c.name, c._id]));
+  const stateMap = new Map(states.map((s) => [s.name, s._id]));
+
+  const toInsert = [];
+
+  rows.forEach((r) => {
+    if (r.tenderNumber && existingNumbers.has(r.tenderNumber)) {
+      errors.push(`Row ${r.rowNumber}: duplicate tenderNumber ${r.tenderNumber}`);
+      return;
+    }
+    if (existingNames.has(r.tenderName)) {
+      errors.push(`Row ${r.rowNumber}: duplicate tenderName ${r.tenderName}`);
+      return;
+    }
+
+    if (!r.companyName) {
+      errors.push(`Row ${r.rowNumber}: missing Company`);
+      return;
+    }
+    const companyId = companyMap.get(r.companyName);
+    if (!companyId) {
+      errors.push(`Row ${r.rowNumber}: company not found (${r.companyName})`);
+      return;
+    }
+
+    if (!r.stateName) {
+      errors.push(`Row ${r.rowNumber}: missing State`);
+      return;
+    }
+    const stateId = stateMap.get(r.stateName);
+    if (!stateId) {
+      errors.push(`Row ${r.rowNumber}: state not found (${r.stateName})`);
+      return;
+    }
+
+    toInsert.push({
+      tenderName: r.tenderName,
+      tenderNumber: r.tenderNumber,
+      technology: r.technology,
+      companyId,
+      stateId,
+      tenderCapacityMW: r.tenderCapacityMW,
+      tenderStatus: r.tenderStatus,
+      rfsIssueDate: r.rfsIssueDate,
+      bidSubmissionDeadline: r.bidSubmissionDeadline,
+      location: r.location,
+    });
+  });
+
+  let created = 0;
+  if (toInsert.length > 0) {
+    await Tender.insertMany(toInsert);
+    created = toInsert.length;
   }
 
-  results.errors = errors;
-  results.skipped = tenders.length - newTenders.length;
-
-  res.send(results);
+  res.send({ created, errors, skipped: rows.length - toInsert.length });
 });
 
 module.exports = {
