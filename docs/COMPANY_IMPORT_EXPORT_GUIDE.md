@@ -24,8 +24,33 @@ GET /v1/companies/export
 - `isActive` (optional): Filter by active status (true/false)
 - `isVerified` (optional): Filter by verified status (true/false)
 - `search` (optional): Search term for name/description
+- `columns` (optional): Comma-separated list of columns to export
 
 **Response:** CSV file download
+
+#### Get Available Export Columns
+
+```
+GET /v1/companies/export/columns
+```
+
+**Response:** List of all available columns with descriptions
+
+#### Column Selection Examples
+
+```bash
+# Export only basic company info
+GET /v1/companies/export?columns=name,playerType,website
+
+# Export contact information only
+GET /v1/companies/export?columns=name,contactEmail,contactPhone,contactCity,contactState
+
+# Export business details
+GET /v1/companies/export?columns=name,playerType,establishedYear,employeeCount,revenue,certifications
+
+# Export with filters and custom columns
+GET /v1/companies/export?playerType=Project Developer&isActive=true&columns=name,contactEmail,website
+```
 
 ### Import Companies
 

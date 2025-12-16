@@ -106,6 +106,7 @@ const exportCompanies = {
     isActive: Joi.boolean(),
     isVerified: Joi.boolean(),
     search: Joi.string().trim(),
+    columns: Joi.string().trim().description('Comma-separated list of columns to export'),
   }),
 };
 

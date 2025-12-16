@@ -14,6 +14,8 @@ router
 
 router.route('/player-type/:playerType').get(companyController.getCompaniesByPlayerType);
 
+router.route('/export/columns').get(companyController.getExportColumns);
+
 router
   .route('/export')
   .get(auth('manageUsers'), validate(companyValidation.exportCompanies), companyController.exportCompanies);
@@ -139,6 +141,45 @@ module.exports = router;
 
 /**
  * @swagger
+ * /companies/export/columns:
+ *   get:
+ *     summary: Get available export columns
+ *     tags: [Companies]
+ *     responses:
+ *       "200":
+ *         description: List of available export columns
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 availableColumns:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       key:
+ *                         type: string
+ *                         description: Column key to use in export
+ *                       label:
+ *                         type: string
+ *                         description: Human-readable column name
+ *                       description:
+ *                         type: string
+ *                         description: Column description
+ *                 usage:
+ *                   type: object
+ *                   properties:
+ *                     example:
+ *                       type: string
+ *                       description: Example usage
+ *                     description:
+ *                       type: string
+ *                       description: Usage instructions
+ */
+
+/**
+ * @swagger
  * /companies/export:
  *   get:
  *     summary: Export companies to CSV
@@ -166,6 +207,12 @@ module.exports = router;
  *         schema:
  *           type: boolean
  *         description: Filter by verified status
+ *       - in: query
+ *         name: columns
+ *         schema:
+ *           type: string
+ *         description: Comma-separated list of columns to export (e.g., "name,playerType,contactEmail")
+ *         example: "name,playerType,contactEmail,contactPhone"
  *     responses:
  *       "200":
  *         description: CSV file download

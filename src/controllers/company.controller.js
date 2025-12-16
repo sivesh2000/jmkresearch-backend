@@ -63,6 +63,43 @@ const getCompaniesByPlayerType = catchAsync(async (req, res) => {
   res.send(companies);
 });
 
+const getExportColumns = catchAsync(async (req, res) => {
+  const columns = [
+    { key: 'name', label: 'Company Name', description: 'Name of the company' },
+    { key: 'playerType', label: 'Player Type', description: 'Type of business (e.g., Project Developer, Module Supplier)' },
+    { key: 'description', label: 'Description', description: 'Company description' },
+    { key: 'website', label: 'Website', description: 'Company website URL' },
+    { key: 'logoUrl', label: 'Logo URL', description: 'Company logo image URL' },
+    { key: 'contactEmail', label: 'Contact Email', description: 'Primary contact email' },
+    { key: 'contactPhone', label: 'Contact Phone', description: 'Primary contact phone number' },
+    { key: 'contactAddress', label: 'Contact Address', description: 'Street address' },
+    { key: 'contactCity', label: 'Contact City', description: 'City' },
+    { key: 'contactState', label: 'Contact State', description: 'State or province' },
+    { key: 'contactCountry', label: 'Contact Country', description: 'Country' },
+    { key: 'contactPincode', label: 'Contact Pincode', description: 'Postal or ZIP code' },
+    { key: 'linkedinUrl', label: 'LinkedIn URL', description: 'LinkedIn company page' },
+    { key: 'twitterUrl', label: 'Twitter URL', description: 'Twitter profile' },
+    { key: 'facebookUrl', label: 'Facebook URL', description: 'Facebook page' },
+    { key: 'establishedYear', label: 'Established Year', description: 'Year company was founded' },
+    { key: 'employeeCount', label: 'Employee Count', description: 'Number of employees' },
+    { key: 'revenue', label: 'Revenue', description: 'Company revenue range' },
+    { key: 'certifications', label: 'Certifications', description: 'Company certifications' },
+    { key: 'tags', label: 'Tags', description: 'Category tags' },
+    { key: 'isActive', label: 'Is Active', description: 'Whether company is active' },
+    { key: 'isVerified', label: 'Is Verified', description: 'Whether company is verified' },
+    { key: 'createdAt', label: 'Created At', description: 'Date company was added' },
+    { key: 'updatedAt', label: 'Updated At', description: 'Date company was last updated' },
+  ];
+
+  res.send({
+    availableColumns: columns,
+    usage: {
+      example: '/companies/export?columns=name,playerType,contactEmail,contactPhone',
+      description: 'Use comma-separated column keys to specify which columns to export',
+    },
+  });
+});
+
 const exportCompanies = catchAsync(async (req, res) => {
   const filter = pick(req.query, ['playerType', 'isActive', 'isVerified']);
 
@@ -75,7 +112,8 @@ const exportCompanies = catchAsync(async (req, res) => {
 
   const csvData = await companyService.exportCompaniesToCSV(filter);
 
-  const headers = [
+  // Define all available columns
+  const allHeaders = [
     'name',
     'playerType',
     'description',
@@ -101,6 +139,22 @@ const exportCompanies = catchAsync(async (req, res) => {
     'createdAt',
     'updatedAt',
   ];
+
+  // Parse requested columns from query parameter
+  let headers = allHeaders;
+  if (req.query.columns) {
+    const requestedColumns = req.query.columns
+      .split(',')
+      .map((col) => col.trim())
+      .filter((col) => col);
+    // Filter to only include valid column names
+    headers = requestedColumns.filter((col) => allHeaders.includes(col));
+
+    // If no valid columns specified, use all headers
+    if (headers.length === 0) {
+      headers = allHeaders;
+    }
+  }
 
   const csvContent = generateCSV(csvData, headers);
 
@@ -139,6 +193,7 @@ module.exports = {
   updateCompany,
   deleteCompany,
   getCompaniesByPlayerType,
+  getExportColumns,
   exportCompanies,
   importCompanies,
 };
