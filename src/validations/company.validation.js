@@ -7,7 +7,7 @@ const createCompany = {
     slug: Joi.string().required().trim(),
     logoUrl: Joi.string().trim().allow(''),
     description: Joi.string().trim().allow(''),
-    playerType: Joi.string().required().trim(),
+    playerType: Joi.alternatives().try(Joi.string().trim(), Joi.array().items(Joi.string().trim()).min(1)).required(),
     website: Joi.string().trim().allow(''),
     contactInfo: Joi.object().keys({
       email: Joi.string().email().allow(''),
@@ -70,7 +70,7 @@ const updateCompany = {
       slug: Joi.string().trim(),
       logoUrl: Joi.string().trim().allow(''),
       description: Joi.string().trim().allow(''),
-      playerType: Joi.string().trim(),
+      playerType: Joi.alternatives().try(Joi.string().trim(), Joi.array().items(Joi.string().trim()).min(1)),
       website: Joi.string().trim().allow(''),
       contactInfo: Joi.object().keys({
         email: Joi.string().email().allow(''),
@@ -100,6 +100,19 @@ const deleteCompany = {
   }),
 };
 
+const exportCompanies = {
+  query: Joi.object().keys({
+    playerType: Joi.alternatives().try(Joi.string().trim(), Joi.array().items(Joi.string().trim())),
+    isActive: Joi.boolean(),
+    isVerified: Joi.boolean(),
+    search: Joi.string().trim(),
+  }),
+};
+
+const importCompanies = {
+  // File validation will be handled in controller
+};
+
 module.exports = {
   createCompany,
   getCompanies,
@@ -107,4 +120,6 @@ module.exports = {
   getCompanyBySlug,
   updateCompany,
   deleteCompany,
+  exportCompanies,
+  importCompanies,
 };
