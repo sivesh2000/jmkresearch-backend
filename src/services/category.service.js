@@ -18,6 +18,26 @@ const queryCategories = async (filter = {}, options = {}) => {
   // Work on a copy to avoid mutating the caller's object
   const query = { ...filter };
 
+  // parentId helpers: support `parentId=null` (roots) and `hasParent=true` or `parentId=notnull` (subcategories)
+  if (query.parentId === 'null') {
+    query.parentId = null;
+  } else if (
+    typeof query.parentId === 'string' &&
+    ['notnull', '!null', 'any', 'exists'].includes(query.parentId.toLowerCase())
+  ) {
+    query.parentId = { $ne: null };
+  }
+
+  if (query.hasParent !== undefined) {
+    const v = typeof query.hasParent === 'string' ? query.hasParent.toLowerCase() : query.hasParent;
+    if (v === 'true' || v === true || v === '1' || v === 1) {
+      query.parentId = { $ne: null };
+    } else if (v === 'false' || v === false || v === '0' || v === 0) {
+      query.parentId = null;
+    }
+    delete query.hasParent;
+  }
+
   // If caller provided a `search` param, convert to partial-match filter
   if (typeof query.search === 'string' && query.search.trim() !== '') {
     const term = query.search.trim();

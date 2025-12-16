@@ -8,7 +8,10 @@ const createCategory = {
       .required()
       .trim()
       .pattern(/^[a-z0-9-]+$/),
-    parentId: Joi.string().custom(objectId).allow(null, ''),
+    parentId: Joi.alternatives()
+      .try(Joi.string().hex().length(24), Joi.string().valid('null', 'notnull', '!null', 'any', 'exists'))
+      .description('Parent category id (24-hex) or use "null"/"notnull" to filter roots/subcategories'),
+    hasParent: Joi.boolean().description('true => only subcategories, false => only root categories'),
     order: Joi.number().integer().min(0).default(0),
     isActive: Joi.boolean().default(true),
     description: Joi.string().trim().allow(''),
