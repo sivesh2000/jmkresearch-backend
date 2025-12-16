@@ -21,7 +21,10 @@ const getCategories = {
   query: Joi.object().keys({
     search: Joi.string().trim(),
     name: Joi.string().trim(),
-    parentId: Joi.string().custom(objectId).allow(null, ''),
+    parentId: Joi.alternatives()
+      .try(Joi.string().hex().length(24), Joi.string().valid('null', 'notnull', '!null', 'any', 'exists'))
+      .description('Parent category id (24-hex) or use "null"/"notnull" to filter roots/subcategories'),
+    hasParent: Joi.boolean().description('true => only subcategories, false => only root categories'),
     isActive: Joi.boolean(),
     sortBy: Joi.string(),
     limit: Joi.number().integer().min(1),
