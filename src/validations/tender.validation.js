@@ -100,6 +100,21 @@ const deleteTender = {
   }),
 };
 
+const exportTenders = {
+  query: Joi.object().keys({
+    technology: Joi.string().trim(),
+    tenderStatus: Joi.string().trim(),
+    companyId: Joi.string().custom(objectId),
+    stateId: Joi.string().custom(objectId),
+    search: Joi.string().trim(),
+    columns: Joi.string().trim().description('Comma-separated list of columns to export'),
+  }),
+};
+
+const importTenders = {
+  // File validation will be handled in controller
+};
+
 module.exports = {
   createTender,
   getTenders,
@@ -107,4 +122,6 @@ module.exports = {
   getTenderBySlug,
   updateTender,
   deleteTender,
+  exportTenders,
+  importTenders,
 };

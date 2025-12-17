@@ -1,7 +1,7 @@
 const express = require('express');
 const auth = require('../../middlewares/auth');
 const validate = require('../../middlewares/validate');
-const upload = require('../../middlewares/upload');
+const csvUpload = require('../../middlewares/csvUpload');
 const companyValidation = require('../../validations/company.validation');
 const companyController = require('../../controllers/company.controller');
 
@@ -14,9 +14,20 @@ router
 
 router.route('/player-type/:playerType').get(companyController.getCompaniesByPlayerType);
 
-router.route('/export').get(auth('manageUsers'), companyController.exportCompanies);
+router.route('/export/columns').get(companyController.getExportColumns);
 
-router.route('/import').post(auth('manageUsers'), upload.single('file'), companyController.importCompanies);
+router
+  .route('/export')
+  .get(auth('manageUsers'), validate(companyValidation.exportCompanies), companyController.exportCompanies);
+
+router
+  .route('/import')
+  .post(
+    auth('manageUsers'),
+    csvUpload.single('file'),
+    validate(companyValidation.importCompanies),
+    companyController.importCompanies
+  );
 
 router.route('/slug/:slug').get(validate(companyValidation.getCompanyBySlug), companyController.getCompanyBySlug);
 
@@ -130,9 +141,48 @@ module.exports = router;
 
 /**
  * @swagger
+ * /companies/export/columns:
+ *   get:
+ *     summary: Get available export columns
+ *     tags: [Companies]
+ *     responses:
+ *       "200":
+ *         description: List of available export columns
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 availableColumns:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       key:
+ *                         type: string
+ *                         description: Column key to use in export
+ *                       label:
+ *                         type: string
+ *                         description: Human-readable column name
+ *                       description:
+ *                         type: string
+ *                         description: Column description
+ *                 usage:
+ *                   type: object
+ *                   properties:
+ *                     example:
+ *                       type: string
+ *                       description: Example usage
+ *                     description:
+ *                       type: string
+ *                       description: Usage instructions
+ */
+
+/**
+ * @swagger
  * /companies/export:
  *   get:
- *     summary: Export companies to Excel
+ *     summary: Export companies to CSV
  *     tags: [Companies]
  *     security:
  *       - bearerAuth: []
@@ -141,15 +191,33 @@ module.exports = router;
  *         name: playerType
  *         schema:
  *           type: string
+ *         description: Filter by player type
  *       - in: query
  *         name: search
  *         schema:
  *           type: string
+ *         description: Search term
+ *       - in: query
+ *         name: isActive
+ *         schema:
+ *           type: boolean
+ *         description: Filter by active status
+ *       - in: query
+ *         name: isVerified
+ *         schema:
+ *           type: boolean
+ *         description: Filter by verified status
+ *       - in: query
+ *         name: columns
+ *         schema:
+ *           type: string
+ *         description: Comma-separated list of columns to export (e.g., "name,playerType,contactEmail")
+ *         example: "name,playerType,contactEmail,contactPhone"
  *     responses:
  *       "200":
- *         description: Excel file download
+ *         description: CSV file download
  *         content:
- *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+ *           text/csv:
  *             schema:
  *               type: string
  *               format: binary
@@ -159,7 +227,7 @@ module.exports = router;
  * @swagger
  * /companies/import:
  *   post:
- *     summary: Import companies from Excel
+ *     summary: Import companies from CSV
  *     tags: [Companies]
  *     security:
  *       - bearerAuth: []
@@ -173,7 +241,7 @@ module.exports = router;
  *               file:
  *                 type: string
  *                 format: binary
- *                 description: Excel file with company data
+ *                 description: CSV file with company data (must have .csv extension)
  *     responses:
  *       "200":
  *         description: Import results
@@ -182,12 +250,15 @@ module.exports = router;
  *             schema:
  *               type: object
  *               properties:
- *                 created:
+ *                 success:
  *                   type: number
- *                 skipped:
+ *                   description: Number of companies successfully imported
+ *                 failed:
  *                   type: number
+ *                   description: Number of companies that failed to import
  *                 errors:
  *                   type: array
  *                   items:
  *                     type: string
+ *                   description: List of error messages for failed imports
  */

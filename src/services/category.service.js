@@ -18,13 +18,10 @@ const queryCategories = async (filter = {}, options = {}) => {
   // Work on a copy to avoid mutating the caller's object
   const query = { ...filter };
 
-  // parentId helpers: support `parentId=null` (roots) and `hasParent=true` or `parentId=notnull` (subcategories)
+  // parentId helpers: support `parentId=null` (roots) and `parentId=notnull` (subcategories)
   if (query.parentId === 'null') {
     query.parentId = null;
-  } else if (
-    typeof query.parentId === 'string' &&
-    ['notnull', '!null', 'any', 'exists'].includes(query.parentId.toLowerCase())
-  ) {
+  } else if (query.parentId === 'notnull') {
     query.parentId = { $ne: null };
   }
 

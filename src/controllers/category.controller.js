@@ -10,21 +10,9 @@ const createCategory = catchAsync(async (req, res) => {
 });
 
 const getCategories = catchAsync(async (req, res) => {
-  const filter = pick(req.query, ['name', 'parentId', 'isActive']);
+  const filter = pick(req.query, ['name', 'parentId', 'isActive', 'search', 'hasParent']);
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
   if (!options.sortBy) options.sortBy = 'order:asc,name:asc';
-
-  // Add search functionality to regular get
-  if (req.query.search) {
-    const searchTerm = String(req.query.search).trim();
-    if (searchTerm) {
-      filter.$or = [
-        { name: { $regex: searchTerm, $options: 'i' } },
-        { slug: { $regex: searchTerm, $options: 'i' } },
-        { description: { $regex: searchTerm, $options: 'i' } },
-      ];
-    }
-  }
 
   const result = await categoryService.queryCategories(filter, options);
   res.send(result);

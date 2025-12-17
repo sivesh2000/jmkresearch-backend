@@ -1,11 +1,10 @@
 const httpStatus = require('http-status');
-const ExcelJS = require('exceljs');
 const moment = require('moment');
 const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
+const { parseCSV, generateCSV } = require('../utils/csvParser');
 const { companyService } = require('../services');
-const { Company } = require('../models');
 
 const createCompany = catchAsync(async (req, res) => {
   const company = await companyService.createCompany(req.body);
@@ -64,6 +63,43 @@ const getCompaniesByPlayerType = catchAsync(async (req, res) => {
   res.send(companies);
 });
 
+const getExportColumns = catchAsync(async (req, res) => {
+  const columns = [
+    { key: 'name', label: 'Company Name', description: 'Name of the company' },
+    { key: 'playerType', label: 'Player Type', description: 'Type of business (e.g., Project Developer, Module Supplier)' },
+    { key: 'description', label: 'Description', description: 'Company description' },
+    { key: 'website', label: 'Website', description: 'Company website URL' },
+    { key: 'logoUrl', label: 'Logo URL', description: 'Company logo image URL' },
+    { key: 'contactEmail', label: 'Contact Email', description: 'Primary contact email' },
+    { key: 'contactPhone', label: 'Contact Phone', description: 'Primary contact phone number' },
+    { key: 'contactAddress', label: 'Contact Address', description: 'Street address' },
+    { key: 'contactCity', label: 'Contact City', description: 'City' },
+    { key: 'contactState', label: 'Contact State', description: 'State or province' },
+    { key: 'contactCountry', label: 'Contact Country', description: 'Country' },
+    { key: 'contactPincode', label: 'Contact Pincode', description: 'Postal or ZIP code' },
+    { key: 'linkedinUrl', label: 'LinkedIn URL', description: 'LinkedIn company page' },
+    { key: 'twitterUrl', label: 'Twitter URL', description: 'Twitter profile' },
+    { key: 'facebookUrl', label: 'Facebook URL', description: 'Facebook page' },
+    { key: 'establishedYear', label: 'Established Year', description: 'Year company was founded' },
+    { key: 'employeeCount', label: 'Employee Count', description: 'Number of employees' },
+    { key: 'revenue', label: 'Revenue', description: 'Company revenue range' },
+    { key: 'certifications', label: 'Certifications', description: 'Company certifications' },
+    { key: 'tags', label: 'Tags', description: 'Category tags' },
+    { key: 'isActive', label: 'Is Active', description: 'Whether company is active' },
+    { key: 'isVerified', label: 'Is Verified', description: 'Whether company is verified' },
+    { key: 'createdAt', label: 'Created At', description: 'Date company was added' },
+    { key: 'updatedAt', label: 'Updated At', description: 'Date company was last updated' },
+  ];
+
+  res.send({
+    availableColumns: columns,
+    usage: {
+      example: '/companies/export?columns=name,playerType,contactEmail,contactPhone',
+      description: 'Use comma-separated column keys to specify which columns to export',
+    },
+  });
+});
+
 const exportCompanies = catchAsync(async (req, res) => {
   const filter = pick(req.query, ['playerType', 'isActive', 'isVerified']);
 
@@ -74,96 +110,79 @@ const exportCompanies = catchAsync(async (req, res) => {
     }
   }
 
-  const companies = await Company.find(filter).sort({ createdAt: -1 }).lean();
+  const csvData = await companyService.exportCompaniesToCSV(filter);
 
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Companies');
-  worksheet.columns = [
-    { header: 'Company Name', key: 'name', width: 30 },
-    { header: 'Player Type', key: 'playerType', width: 20 },
-    { header: 'Website', key: 'website', width: 30 },
-    { header: 'Email', key: 'email', width: 25 },
-    { header: 'Phone', key: 'phone', width: 15 },
-    { header: 'City', key: 'city', width: 15 },
-    { header: 'State', key: 'state', width: 15 },
-    { header: 'Status', key: 'status', width: 10 },
-    { header: 'Created At', key: 'createdAt', width: 20 },
+  // Define all available columns
+  const allHeaders = [
+    'name',
+    'playerType',
+    'description',
+    'website',
+    'logoUrl',
+    'contactEmail',
+    'contactPhone',
+    'contactAddress',
+    'contactCity',
+    'contactState',
+    'contactCountry',
+    'contactPincode',
+    'linkedinUrl',
+    'twitterUrl',
+    'facebookUrl',
+    'establishedYear',
+    'employeeCount',
+    'revenue',
+    'certifications',
+    'tags',
+    'isActive',
+    'isVerified',
+    'createdAt',
+    'updatedAt',
   ];
 
-  companies.forEach((company) => {
-    worksheet.addRow({
-      name: company.name || '',
-      playerType: company.playerType || '',
-      website: company.website || '',
-      email: (company.contactInfo && company.contactInfo.email) || '',
-      phone: (company.contactInfo && company.contactInfo.phone) || '',
-      city: (company.contactInfo && company.contactInfo.city) || '',
-      state: (company.contactInfo && company.contactInfo.state) || '',
-      status: company.isActive ? 'Active' : 'Inactive',
-      createdAt: company.createdAt ? moment(company.createdAt).format('DD/MM/YYYY HH:mm') : '',
-    });
-  });
+  // Parse requested columns from query parameter
+  let headers = allHeaders;
+  if (req.query.columns) {
+    const requestedColumns = req.query.columns
+      .split(',')
+      .map((col) => col.trim())
+      .filter((col) => col);
+    // Filter to only include valid column names
+    headers = requestedColumns.filter((col) => allHeaders.includes(col));
 
-  const fileName = `companies_${moment().format('YYYY-MM-DD')}.xlsx`;
-  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    // If no valid columns specified, use all headers
+    if (headers.length === 0) {
+      headers = allHeaders;
+    }
+  }
+
+  const csvContent = generateCSV(csvData, headers);
+
+  const fileName = `companies_${moment().format('YYYY-MM-DD')}.csv`;
+  res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-  await workbook.xlsx.write(res);
-  res.end();
+  res.send(csvContent);
 });
 
 const importCompanies = catchAsync(async (req, res) => {
   if (!req.file) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Excel file is required');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'CSV file is required');
   }
 
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(req.file.buffer);
-  const worksheet = workbook.getWorksheet(1);
-
-  const companies = [];
-  const errors = [];
-
-  worksheet.eachRow((row, rowNumber) => {
-    if (rowNumber === 1) return; // Skip header
-
-    try {
-      const companyData = {
-        name: row.getCell(1).value,
-        playerType: row.getCell(2).value,
-        website: row.getCell(3).value,
-        contactInfo: {
-          email: row.getCell(4).value,
-          phone: row.getCell(5).value,
-          city: row.getCell(6).value,
-          state: row.getCell(7).value,
-        },
-        isActive: row.getCell(8).value === 'Active',
-      };
-
-      if (companyData.name && companyData.playerType) {
-        companies.push(companyData);
-      }
-    } catch (error) {
-      errors.push(`Row ${rowNumber}: ${error.message}`);
-    }
-  });
-
-  const results = { created: 0, errors: [] };
-
-  const existingCompanies = await Company.find({}, 'name').lean();
-  const existingNames = new Set(existingCompanies.map((c) => c.name));
-
-  const newCompanies = companies.filter((company) => !existingNames.has(company.name));
-
-  if (newCompanies.length > 0) {
-    await Company.insertMany(newCompanies);
-    results.created = newCompanies.length;
+  // Check if file is CSV
+  if (!req.file.originalname.toLowerCase().endsWith('.csv')) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Only CSV files are allowed');
   }
 
-  results.errors = errors;
-  results.skipped = companies.length - newCompanies.length;
+  try {
+    const csvContent = req.file.buffer.toString('utf8');
+    const csvData = parseCSV(csvContent);
 
-  res.send(results);
+    const results = await companyService.importCompaniesFromCSV(csvData);
+    res.send(results);
+  } catch (error) {
+    throw new ApiError(httpStatus.BAD_REQUEST, `CSV parsing error: ${error.message}`);
+  }
 });
 
 module.exports = {
@@ -174,6 +193,7 @@ module.exports = {
   updateCompany,
   deleteCompany,
   getCompaniesByPlayerType,
+  getExportColumns,
   exportCompanies,
   importCompanies,
 };

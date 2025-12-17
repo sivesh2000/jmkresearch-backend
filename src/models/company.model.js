@@ -7,7 +7,7 @@ const companySchema = new mongoose.Schema(
     slug: { type: String, unique: true, trim: true },
     logoUrl: { type: String, trim: true },
     description: { type: String, trim: true },
-    playerType: { type: String, required: true, trim: true },
+    playerType: [{ type: String, required: true, trim: true }],
     website: { type: String, trim: true },
     contactInfo: {
       email: { type: String, trim: true },
